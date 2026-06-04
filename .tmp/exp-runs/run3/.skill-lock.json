@@ -1,0 +1,35 @@
+{
+  "version": 3,
+  "skills": {
+    "10x-cli-guide": {
+      "source": "przeprogramowani/10x-cli",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/przeprogramowani/10x-cli.git",
+      "skillPath": "skills/10x-cli-guide/SKILL.md",
+      "skillFolderHash": "602a3ca233533a096199ea4ec90f2c88ca2a3577",
+      "installedAt": "2026-05-19T20:04:06.579Z",
+      "updatedAt": "2026-05-19T20:04:06.579Z"
+    },
+    "10x-cli-setup": {
+      "source": "przeprogramowani/10x-cli",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/przeprogramowani/10x-cli.git",
+      "skillPath": "skills/10x-cli-setup/SKILL.md",
+      "skillFolderHash": "101a19453a7564e5afb493edb8d27401602783b4",
+      "installedAt": "2026-05-19T20:04:06.585Z",
+      "updatedAt": "2026-05-19T20:04:06.585Z"
+    },
+    "find-skills": {
+      "source": "vercel-labs/skills",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/vercel-labs/skills.git",
+      "skillPath": "skills/find-skills/SKILL.md",
+      "skillFolderHash": "3013fdeb8a11b10b1eb795ec3ae8bfca38f7c26d",
+      "installedAt": "2026-05-19T20:04:16.058Z",
+      "updatedAt": "2026-05-19T20:04:16.058Z"
+    }
+  },
+  "dismissed": {
+    "findSkillsPrompt": true
+  }
+}
