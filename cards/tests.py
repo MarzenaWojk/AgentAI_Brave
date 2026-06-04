@@ -7,6 +7,19 @@ class FlashcardsApiTests(TestCase):
 	def setUp(self):
 		self.client = Client()
 
+	def test_homepage_returns_status_payload(self):
+		response = self.client.get("/")
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json()["status"], "ok")
+		self.assertEqual(response.json()["endpoints"]["health"], "/health/")
+
+	def test_healthcheck_returns_ok(self):
+		response = self.client.get("/health/")
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json(), {"status": "ok"})
+
 	def test_invalid_json_returns_structured_error(self):
 		response = self.client.post(
 			"/api/cards/flashcards/",

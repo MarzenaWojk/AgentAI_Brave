@@ -19,6 +19,23 @@ def _error_response(code, message, context, status):
 	)
 
 
+def homepage(request):
+	return JsonResponse(
+		{
+			"status": "ok",
+			"message": "tenx_cards is running",
+			"endpoints": {
+				"health": "/health/",
+				"flashcards": "/api/cards/flashcards/",
+			},
+		}
+	)
+
+
+def healthcheck(request):
+	return JsonResponse({"status": "ok"})
+
+
 @csrf_exempt
 def flashcards_collection(request):
 	if request.method == "GET":
