@@ -1,11 +1,49 @@
 import json
 
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
 
 class FlashcardsApiTests(TestCase):
 	def setUp(self):
 		self.client = Client()
+		self.user_model = get_user_model()
+
+	def test_auth_register_returns_user_data_and_creates_session(self):
+		register_response = self.client.post(
+			"/api/cards/auth/register/",
+			data=json.dumps({"username": "anna", "password": "StrongPass123"}),
+			content_type="application/json",
+		)
+
+		self.assertEqual(register_response.status_code, 201)
+		self.assertEqual(register_response.json()["data"]["username"], "anna")
+
+		me_response = self.client.get("/api/cards/auth/me/")
+		self.assertEqual(me_response.status_code, 200)
+		self.assertEqual(me_response.json()["data"]["username"], "anna")
+
+	def test_auth_login_returns_user_data_and_creates_session(self):
+		self.user_model.objects.create_user(username="ola", password="StrongPass123")
+
+		login_response = self.client.post(
+			"/api/cards/auth/login/",
+			data=json.dumps({"username": "ola", "password": "StrongPass123"}),
+			content_type="application/json",
+		)
+
+		self.assertEqual(login_response.status_code, 200)
+		self.assertEqual(login_response.json()["data"]["username"], "ola")
+
+		me_response = self.client.get("/api/cards/auth/me/")
+		self.assertEqual(me_response.status_code, 200)
+		self.assertEqual(me_response.json()["data"]["username"], "ola")
+
+	def test_auth_me_requires_session(self):
+		response = self.client.get("/api/cards/auth/me/")
+
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json()["error"]["code"], "AUTH_REQUIRED")
 
 	def test_homepage_returns_status_payload(self):
 		response = self.client.get("/")
