@@ -1,0 +1,27 @@
+{% extends "cards/base.html" %}
+
+{% block title %}Login | Tenx Cards{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+	<h1>Welcome back</h1>
+	<p>Log in to access your personal flashcards dashboard.</p>
+
+	<form method="post" class="card-form auth-form">
+		{% csrf_token %}
+		{{ form.non_field_errors }}
+
+		<label for="id_username">Username</label>
+		{{ form.username.errors }}
+		{{ form.username }}
+
+		<label for="id_password">Password</label>
+		{{ form.password.errors }}
+		{{ form.password }}
+
+		<button type="submit" class="primary-btn">Login</button>
+	</form>
+
+	<p class="switch-copy">Need an account? <a href="{% url 'register' %}">Create one</a>.</p>
+</section>
+{% endblock %}

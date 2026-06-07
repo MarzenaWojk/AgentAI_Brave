@@ -1,0 +1,56 @@
+{% extends "cards/base.html" %}
+
+{% block title %}Dashboard | Tenx Cards{% endblock %}
+
+{% block content %}
+<section class="dashboard-head">
+	<div>
+		<p class="eyebrow">Your study cockpit</p>
+		<h1>Flashcards dashboard</h1>
+		<p>Build cards quickly and keep your deck sharp.</p>
+	</div>
+	<div class="pill">{{ flashcards|length }} cards</div>
+</section>
+
+<section class="dashboard-grid">
+	<section class="panel">
+		<h2>Create a card</h2>
+		<form method="post" class="card-form">
+			{% csrf_token %}
+			<input type="hidden" name="action" value="create">
+
+			<label for="front">Front</label>
+			<textarea id="front" name="front" rows="3" placeholder="Question or cue...">{{ front_value }}</textarea>
+
+			<label for="back">Back</label>
+			<textarea id="back" name="back" rows="4" placeholder="Answer or explanation...">{{ back_value }}</textarea>
+
+			<button type="submit" class="primary-btn">Add flashcard</button>
+		</form>
+	</section>
+
+	<section class="panel">
+		<h2>Your latest cards</h2>
+		{% if flashcards %}
+			<ul class="cards-list">
+				{% for card in flashcards %}
+					<li>
+						<div class="card-copy">
+							<strong>{{ card.front }}</strong>
+							<p>{{ card.back }}</p>
+						</div>
+						<form method="post" class="delete-form">
+							{% csrf_token %}
+							<input type="hidden" name="action" value="delete">
+							<input type="hidden" name="flashcard_id" value="{{ card.id }}">
+							<button type="submit" class="ghost-btn">Delete</button>
+						</form>
+					</li>
+				{% endfor %}
+			</ul>
+		{% else %}
+			<p class="empty-state">No cards yet. Add your first one on the left.</p>
+		{% endif %}
+	</section>
+</section>
+{% endblock %}

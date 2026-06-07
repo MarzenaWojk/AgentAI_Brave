@@ -1,0 +1,27 @@
+{% extends "cards/base.html" %}
+
+{% block title %}Tenx Cards | Learn Faster{% endblock %}
+
+{% block content %}
+<section class="hero">
+	<div>
+		<p class="eyebrow">Session-powered flashcards</p>
+		<h1>Turn your notes into focused learning loops.</h1>
+		<p class="subtitle">
+			Register in seconds, create your first cards, and keep your deck private per account.
+		</p>
+		<div class="hero-actions">
+			<a href="{% url 'register' %}" class="primary-btn">Start now</a>
+			<a href="{% url 'login' %}" class="ghost-btn link-btn">I already have an account</a>
+		</div>
+	</div>
+	<aside class="hero-panel">
+		<h2>What you get in MVP</h2>
+		<ul>
+			<li>Secure account with Django sessions</li>
+			<li>Private flashcards list for each user</li>
+			<li>Quick create and delete actions</li>
+		</ul>
+	</aside>
+</section>
+{% endblock %}

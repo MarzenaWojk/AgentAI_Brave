@@ -1,0 +1,31 @@
+{% extends "cards/base.html" %}
+
+{% block title %}Create account | Tenx Cards{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+	<h1>Create your account</h1>
+	<p>Use a username and a secure password to start building your first cards.</p>
+
+	<form method="post" class="card-form auth-form">
+		{% csrf_token %}
+		{{ form.non_field_errors }}
+
+		<label for="id_username">Username</label>
+		{{ form.username.errors }}
+		{{ form.username }}
+
+		<label for="id_password1">Password</label>
+		{{ form.password1.errors }}
+		{{ form.password1 }}
+
+		<label for="id_password2">Repeat password</label>
+		{{ form.password2.errors }}
+		{{ form.password2 }}
+
+		<button type="submit" class="primary-btn">Create account</button>
+	</form>
+
+	<p class="switch-copy">Already registered? <a href="{% url 'login' %}">Login here</a>.</p>
+</section>
+{% endblock %}

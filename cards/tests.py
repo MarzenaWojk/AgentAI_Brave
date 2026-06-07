@@ -3,6 +3,8 @@ import json
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
+from .models import Flashcard
+
 
 class FlashcardsApiTests(TestCase):
 	def setUp(self):
@@ -54,8 +56,8 @@ class FlashcardsApiTests(TestCase):
 		response = self.client.get("/")
 
 		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json()["status"], "ok")
-		self.assertEqual(response.json()["endpoints"]["health"], "/health/")
+		self.assertContains(response, "Tenx Cards")
+		self.assertContains(response, "Start now")
 
 	def test_healthcheck_returns_ok(self):
 		response = self.client.get("/health/")
@@ -159,3 +161,80 @@ class FlashcardsApiTests(TestCase):
 
 		self.assertEqual(response.status_code, 401)
 		self.assertEqual(response.json()["error"]["code"], "AUTH_REQUIRED")
+
+	def test_login_page_renders(self):
+		response = self.client.get("/login/")
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Welcome back")
+
+	def test_register_flow_redirects_to_dashboard(self):
+		response = self.client.post(
+			"/register/",
+			data={
+				"username": "ui-user",
+				"password1": "StrongPass123!",
+				"password2": "StrongPass123!",
+			},
+		)
+
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response.headers["Location"], "/dashboard/")
+
+		dashboard = self.client.get("/dashboard/")
+		self.assertEqual(dashboard.status_code, 200)
+		self.assertContains(dashboard, "Flashcards dashboard")
+
+	def test_dashboard_requires_authentication(self):
+		response = self.client.get("/dashboard/")
+
+		self.assertEqual(response.status_code, 302)
+		self.assertTrue(response.headers["Location"].startswith("/login/"))
+
+	def test_dashboard_create_flashcard_from_form(self):
+		self._login_user("ui-create-user")
+
+		response = self.client.post(
+			"/dashboard/",
+			data={
+				"action": "create",
+				"front": "What is Python?",
+				"back": "A programming language",
+			},
+		)
+
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response.headers["Location"], "/dashboard/")
+		self.assertTrue(
+			Flashcard.objects.filter(
+				owner__username="ui-create-user",
+				front="What is Python?",
+			).exists()
+		)
+
+	def test_dashboard_delete_only_own_flashcard(self):
+		owner = self.user_model.objects.create_user(
+			username="owner-user",
+			password="StrongPass123",
+		)
+		other = self.user_model.objects.create_user(
+			username="other-user",
+			password="StrongPass123",
+		)
+		foreign_card = Flashcard.objects.create(
+			owner=other,
+			front="Foreign front",
+			back="Foreign back",
+		)
+
+		self.client.login(username=owner.username, password="StrongPass123")
+		response = self.client.post(
+			"/dashboard/",
+			data={
+				"action": "delete",
+				"flashcard_id": foreign_card.id,
+			},
+		)
+
+		self.assertEqual(response.status_code, 302)
+		self.assertTrue(Flashcard.objects.filter(id=foreign_card.id).exists())
