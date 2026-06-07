@@ -10,9 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import os
 from pathlib import Path
-from urllib.parse import unquote, urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,13 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-kp*06-v0=zb3+!*kmiw@u2y0^o8@4do!o$b6)&)exonuss9t6t'
+SECRET_KEY = 'django-insecure-18#!0uo2*c3x3pi%$32&r!5(%be9_bvrrhmvz55ycn-47&#p59'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['agentaibrave-production.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://agentaibrave-production.up.railway.app']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -40,7 +37,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cards',
 ]
 
 MIDDLEWARE = [
@@ -76,40 +72,11 @@ WSGI_APPLICATION = 'tenx_cards.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-
-def _default_sqlite_db():
-    return {
+DATABASES = {
+    'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-
-
-def _database_from_env():
-    database_url = os.getenv('DATABASE_URL', '').strip()
-    if not database_url:
-        return _default_sqlite_db()
-
-    parsed = urlparse(database_url)
-    if parsed.scheme not in {'postgres', 'postgresql'}:
-        return _default_sqlite_db()
-
-    db_config = {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': parsed.path.lstrip('/'),
-        'USER': unquote(parsed.username or ''),
-        'PASSWORD': unquote(parsed.password or ''),
-        'HOST': parsed.hostname or '',
-        'PORT': str(parsed.port or ''),
-    }
-
-    sslmode = os.getenv('DB_SSLMODE', 'require').strip()
-    if sslmode:
-        db_config['OPTIONS'] = {'sslmode': sslmode}
-
-    return db_config
-
-DATABASES = {
-    'default': _database_from_env(),
 }
 
 
