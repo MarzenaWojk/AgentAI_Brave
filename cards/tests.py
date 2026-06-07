@@ -9,6 +9,11 @@ class FlashcardsApiTests(TestCase):
 		self.client = Client()
 		self.user_model = get_user_model()
 
+	def _login_user(self, username="user", password="StrongPass123"):
+		self.user_model.objects.create_user(username=username, password=password)
+		self.assertTrue(self.client.login(username=username, password=password))
+		return username
+
 	def test_auth_register_returns_user_data_and_creates_session(self):
 		register_response = self.client.post(
 			"/api/cards/auth/register/",
@@ -59,6 +64,8 @@ class FlashcardsApiTests(TestCase):
 		self.assertEqual(response.json(), {"status": "ok"})
 
 	def test_invalid_json_returns_structured_error(self):
+		self._login_user("json-user")
+
 		response = self.client.post(
 			"/api/cards/flashcards/",
 			data="{invalid",
@@ -71,6 +78,8 @@ class FlashcardsApiTests(TestCase):
 		self.assertIn("context", response.json()["error"])
 
 	def test_validation_error_returns_structured_error(self):
+		self._login_user("validation-user")
+
 		response = self.client.post(
 			"/api/cards/flashcards/",
 			data=json.dumps({"front": "Hello"}),
@@ -82,6 +91,8 @@ class FlashcardsApiTests(TestCase):
 		self.assertEqual(response.json()["error"]["context"]["fields"], ["back"])
 
 	def test_not_found_returns_structured_error(self):
+		self._login_user("missing-user")
+
 		response = self.client.get("/api/cards/flashcards/999/")
 
 		self.assertEqual(response.status_code, 404)
@@ -89,12 +100,16 @@ class FlashcardsApiTests(TestCase):
 		self.assertEqual(response.json()["error"]["context"]["id"], 999)
 
 	def test_method_not_allowed_returns_structured_error(self):
+		self._login_user("method-user")
+
 		response = self.client.put("/api/cards/flashcards/1/")
 
 		self.assertEqual(response.status_code, 405)
 		self.assertEqual(response.json()["error"]["code"], "METHOD_NOT_ALLOWED")
 
 	def test_create_flashcard_success(self):
+		self._login_user("create-user")
+
 		response = self.client.post(
 			"/api/cards/flashcards/",
 			data=json.dumps({"front": "Q", "back": "A"}),
@@ -107,6 +122,8 @@ class FlashcardsApiTests(TestCase):
 		self.assertEqual(response.json()["data"]["back"], "A")
 
 	def test_delete_flashcard_success(self):
+		self._login_user("delete-user")
+
 		response = self.client.post(
 			"/api/cards/flashcards/",
 			data=json.dumps({"front": "Q", "back": "A"}),
@@ -123,8 +140,22 @@ class FlashcardsApiTests(TestCase):
 		self.assertEqual(response.status_code, 404)
 
 	def test_delete_nonexistent_flashcard(self):
+		self._login_user("missing-delete-user")
+
 		response = self.client.delete("/api/cards/flashcards/999/")
 
 		self.assertEqual(response.status_code, 404)
 		self.assertEqual(response.json()["error"]["code"], "NOT_FOUND")
 		self.assertEqual(response.json()["error"]["context"]["id"], 999)
+
+	def test_flashcards_collection_requires_auth(self):
+		response = self.client.get("/api/cards/flashcards/")
+
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json()["error"]["code"], "AUTH_REQUIRED")
+
+	def test_flashcard_detail_requires_auth(self):
+		response = self.client.get("/api/cards/flashcards/1/")
+
+		self.assertEqual(response.status_code, 401)
+		self.assertEqual(response.json()["error"]["code"], "AUTH_REQUIRED")

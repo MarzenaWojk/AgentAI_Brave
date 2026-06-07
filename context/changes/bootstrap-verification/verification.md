@@ -1,8 +1,8 @@
 ﻿---
-bootstrapped_at: 2026-05-24T08:50:22Z
+bootstrapped_at: 2026-06-07T00:00:00Z
 starter_id: django
 starter_name: Django
-project_name: 10x-cards
+project_name: tenx_cards
 language_family: python
 package_manager: uv
 cwd_strategy: native-cwd
@@ -13,10 +13,10 @@ audit_command: pip-audit
 
 ## Hand-off
 
-`yaml
+```yaml
 starter_id: django
 package_manager: uv
-project_name: 10x-cards
+project_name: tenx_cards
 hints:
   language_family: python
   team_size: solo
@@ -32,7 +32,7 @@ hints:
   has_realtime: false
   has_ai: true
   has_background_jobs: false
-`
+```
 
 ## Why this stack
 
@@ -40,21 +40,23 @@ This project is a small greenfield web app with login, AI-assisted flashcard gen
 
 ## Pre-scaffold verification
 
-| Signal      | Value   | Severity      | Notes                                      |
-| ----------- | ------- | ------------- | ------------------------------------------ |
-| npm package | not run | not available | non-JS starter                              |
-| GitHub repo | not run | not available | docs_url is not a GitHub repository URL     |
+| Signal | Value | Severity | Notes |
+| --- | --- | --- | --- |
+| npm package | not run | not available | non-JS starter |
+| GitHub repo | not run | not available | docs_url is not a GitHub repository URL |
 
 ## Scaffold log
 
-**Resolved invocation**: django-admin startproject . .
+**Resolved invocation**: `.venv/Scripts/django-admin.exe startproject tenx_cards .`
 **Strategy**: native-cwd
 **Exit code**: 1
-**Stderr (last lines)**:
+**Stderr (last 20 lines)**:
 
-`	ext
-& : The term 'django-admin' is not recognized as the name of a cmdlet, function, script file, or operable program.
-`
+```text
+CommandError: C:\Users\Marzena\.agents\manage.py already exists. Overlaying a project into an existing directory won't replace conflicting files.
+```
+
+**.bootstrap-scaffold left in place at**: not created (the scaffold writes directly into the current directory)
 
 ## Post-scaffold audit
 
@@ -62,26 +64,27 @@ This project is a small greenfield web app with login, AI-assisted flashcard gen
 
 ## Hints recorded but not acted on
 
-| Hint                    | Value                |
-| ----------------------- | -------------------- |
-| bootstrapper_confidence | verified             |
-| quality_override        | false                |
-| path_taken              | standard             |
-| self_check_answers      | null                 |
-| team_size               | solo                 |
-| deployment_target       | fly                  |
-| ci_provider             | github-actions       |
-| ci_default_flow         | auto-deploy-on-merge |
-| has_auth                | true                 |
-| has_payments            | false                |
-| has_realtime            | false                |
-| has_ai                  | true                 |
-| has_background_jobs     | false                |
+| Hint | Value |
+| --- | --- |
+| bootstrapper_confidence | verified |
+| quality_override | false |
+| path_taken | standard |
+| self_check_answers | null |
+| team_size | solo |
+| deployment_target | fly |
+| ci_provider | github-actions |
+| ci_default_flow | auto-deploy-on-merge |
+| has_auth | true |
+| has_payments | false |
+| has_realtime | false |
+| has_ai | true |
+| has_background_jobs | false |
 
 ## Next steps
 
-Scaffold failed because django-admin is unavailable in the current environment.
+Next: fix the Django starter invocation or its direct-into-cwd substitution rule, then re-run `/10x-bootstrapper @context/foundation/tech-stack.md`.
 
-Retry path:
-- Install Django in your active Python environment.
-- Re-run /10x-bootstrapper @context/foundation/tech-stack.md.
+Useful manual steps in the meantime:
+- Keep the current project state; this failed run did not scaffold new files.
+- Treat this as a starter-template issue, not an application-code regression.
+- Your existing Django project still passes `.venv/Scripts/python.exe manage.py check` and `.venv/Scripts/python.exe manage.py test cards`.

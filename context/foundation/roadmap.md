@@ -3,7 +3,7 @@ project: "# TODO: project — see Open Questions"
 version: 1
 status: draft
 created: 2026-06-05
-updated: 2026-06-05
+updated: 2026-06-06
 prd_version: 1
 main_goal: speed
 top_blocker: time
@@ -31,6 +31,7 @@ Produkt ma zmniejszyc tarcie w nauce jezykow: zamiast recznie budowac fiszki, uz
 |---|---|---|---|---|---|
 | F-01 | auth-ownership-foundation | (foundation) minimalny kontrakt tozsamosci i wlasnosci danych jest gotowy | — | Access Control, NFR-privacy | ready |
 | S-01 | account-access-flow | user can zarejestrowac konto i zalogowac sie do aplikacji | F-01 | FR-006, US-01 | proposed |
+| S-01B | ui-shell-and-auth-pages | user can przejsc podstawowy flow web UI: register, login, dashboard | S-01 | FR-001, FR-006, US-01 | proposed |
 | S-02 | text-to-ai-draft-cards | user can wkleic tekst i wygenerowac draft fiszek przez AI | S-01 | FR-001, FR-002, US-01 | proposed |
 | S-03 | review-generated-cards | user can zaakceptowac, edytowac lub odrzucic wygenerowane fiszki | S-02 | FR-003, FR-005, US-01 | proposed |
 | S-04 | save-reviewed-cards | user can zapisac zaakceptowane fiszki na swoim koncie | S-03 | FR-006, US-01 | proposed |
@@ -45,6 +46,7 @@ Navigation aid — groups items that share a Prerequisites chain. Canonical orde
 |---|---|---|---|
 | A | Core value chain | `F-01` -> `S-01` -> `S-02` -> `S-03` -> `S-04` -> `S-05` | Gowny lancuch pod cel speed i walidacje hipotezy produktu. |
 | B | Manual fallback | `S-06` | Rownolegly fallback po `S-01`; mozna uruchomic niezaleznie od AI chain. |
+| C | UX enablement | `S-01` -> `S-01B` -> `S-02` | Minimalny shell UI odblokowujacy browserowe testy end-to-end. |
 
 ## Baseline
 
@@ -100,6 +102,19 @@ Foundations below assume these are present and do NOT re-scaffold them.
 - **Unknowns:**
   - Jakie acceptance criteria dla jakosci draftu uznajemy za minimum MVP? — Owner: user. Block: no.
 - **Risk:** Slaba jakosc draftow obnizy wskaznik akceptacji i utrudni walidacje metryk sukcesu.
+- **Status:** proposed
+
+### S-01B: Podstawowy shell UI i strony auth
+
+- **Outcome:** Uzytkownik moze z poziomu przegladarki przejsc przez register, login i wejsc na dashboard z podstawowymi akcjami fiszek.
+- **Change ID:** ui-shell-and-auth-pages
+- **PRD refs:** FR-001, FR-006, US-01
+- **Prerequisites:** S-01
+- **Parallel with:** S-06
+- **Blockers:** —
+- **Unknowns:**
+  - Czy dashboard ma od razu miec wejscie do generacji, czy tylko auth + lista fiszek? — Owner: user. Block: no.
+- **Risk:** Zbyt szeroki zakres UI (design system, rozbudowane komponenty) moze opoznic domkniecie core flow.
 - **Status:** proposed
 
 ### S-03: Sesja review wygenerowanych fiszek
@@ -160,6 +175,7 @@ Foundations below assume these are present and do NOT re-scaffold them.
 |---|---|---|---|---|
 | F-01 | auth-ownership-foundation | Foundation: minimalny kontrakt auth i ownership | yes | Warunek startowy dla kont i zapisu |
 | S-01 | account-access-flow | User can zalozyc konto i zalogowac sie | no | Wymaga domknietego F-01 |
+| S-01B | ui-shell-and-auth-pages | User can wejsc przez web UI do auth i dashboardu | no | Wymaga domknietego S-01 |
 | S-02 | text-to-ai-draft-cards | User can wygenerowac draft fiszek z tekstu | no | Wymaga zamknietego S-01 |
 | S-03 | review-generated-cards | User can przejsc sesje review (accept/edit/reject) | no | Wymaga draftu z S-02 |
 | S-04 | save-reviewed-cards | User can zapisac zaakceptowane fiszki na koncie | no | Wymaga review z S-03 |

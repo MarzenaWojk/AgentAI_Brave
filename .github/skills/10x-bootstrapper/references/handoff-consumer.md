@@ -20,7 +20,7 @@ Bootstrapper reads four top-level keys from frontmatter and dispatches actions o
 
 Used to look up the chosen card in `/skills/10x-tech-stack-selector/references/starter-registry.yaml` under the `starters:` map. The card supplies:
 
-- `cmd_template` — the CLI invocation, with `{name}` and `{pm}` placeholders.
+- `cmd_template` — the CLI invocation, with `{name}` and `{pm}` placeholders, plus optional `{project_name}` and `{target_dir}` for starters that need separate module-name and path arguments.
 - `language_family` — drives the audit-command lookup at Step 3.
 - `bootstrapper_confidence` — surfaced to the user as informational; logged in `verification.md`.
 - `toolchain.package_manager` — fallback for `{pm}` substitution when the hand-off omits `package_manager`.
@@ -36,14 +36,20 @@ When omitted from frontmatter (legitimate for ecosystems with no external choice
 
 If `cmd_template` does not contain `{pm}` at all (e.g., `cargo new {name} --bin --edition 2024`), ignore the `package_manager` field entirely.
 
-### `project_name` — `{name}` substitution
+### `project_name` — `{project_name}` substitution
 
-Substituted into `cmd_template` for `{name}`. The substitution rule depends on the chosen `cwd_strategy` (see `scaffold-merge.md`):
+Substituted into `cmd_template` for `{project_name}` where present. Use this placeholder when a starter CLI requires a valid module/app identifier separate from the target filesystem path (for example, Django `startproject`).
 
-- `subdir-then-move` and `git-clone` strategies: `{name}` becomes `.bootstrap-scaffold` (the temp directory the CLI scaffolds into; bootstrapper moves files up afterward).
-- `native-cwd` strategy: `{name}` becomes `.` (the CLI scaffolds directly into cwd).
+The `project_name` value is also preserved in the verification log (and, by virtue of being in the hand-off frontmatter, in any commit the user later makes).
 
-The `project_name` itself is preserved in the verification log (and, by virtue of being in the hand-off frontmatter, in any commit the user later makes), but it is NOT used as the actual scaffold directory name in v1 — the scaffold-into-cwd convention means the directory name is the user's choice when they `cd` into the eventual project location.
+### `cwd_strategy` output — `{name}` and `{target_dir}` substitution
+
+Path-like placeholders are resolved from the chosen `cwd_strategy` (see `scaffold-merge.md`):
+
+- `subdir-then-move` and `git-clone` strategies: `{name}` and `{target_dir}` become `.bootstrap-scaffold`.
+- `native-cwd` strategy: `{name}` and `{target_dir}` become `.`.
+
+This split lets templates keep a stable project identifier (`{project_name}`) while still writing into the strategy-selected target directory (`{target_dir}`).
 
 ### `hints.language_family` — audit-command dispatch
 

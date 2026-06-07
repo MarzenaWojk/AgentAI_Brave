@@ -4,19 +4,24 @@ The phase where bootstrapper actually runs the starter's CLI. Three `cwd_strateg
 
 ## Inputs (resolved at Step 0 / Step 1)
 
-- The chosen card's `cmd_template` (carries `{name}` and possibly `{pm}` placeholders).
+- The chosen card's `cmd_template` (carries `{name}` and possibly `{pm}`, `{project_name}`, `{target_dir}` placeholders).
 - `project_name` from the hand-off frontmatter.
 - `package_manager` from the hand-off frontmatter, falling back to the card's `toolchain.package_manager` if omitted.
 - `cwd_strategy` from `bootstrapper-config.yaml` for this `starter_id`, defaulting to `subdir-then-move` if the id is not listed.
 
 ## Substitution rules
 
-Two placeholders, substituted before exec:
+Supported placeholders, substituted before exec:
 
-- `{name}` — replaced by `.bootstrap-scaffold` for `subdir-then-move` and `git-clone`; replaced by `.` for `native-cwd`.
+- `{name}` — generic scaffold directory placeholder. Replaced by `.bootstrap-scaffold` for `subdir-then-move` and `git-clone`; replaced by `.` for `native-cwd`.
 - `{pm}` — replaced by the resolved package manager (hand-off value, or card's `toolchain.package_manager` fallback). If `cmd_template` contains no `{pm}` placeholder, the package manager field is unused (e.g., `cargo new {name} --bin --edition 2024`).
+- `{project_name}` — replaced by `project_name` from the hand-off frontmatter.
+- `{target_dir}` — replaced by `.bootstrap-scaffold` for `subdir-then-move` and `git-clone`; replaced by `.` for `native-cwd`.
 
-`project_name` itself is **not** a substitution input. The scaffolded project lives in cwd; the cwd's directory name is the project's directory name. `project_name` is staged into the verification log as metadata.
+Notes:
+
+- Templates may use either `{name}` or `{target_dir}` for path-like arguments.
+- Templates that need a valid Python/package identifier (for example Django's project module) should use `{project_name}` and not `{name}`.
 
 ## Strategy: subdir-then-move (default)
 
@@ -32,12 +37,12 @@ Sequence:
 
 ## Strategy: native-cwd
 
-Used by starters whose CLI was designed to scaffold into the current directory (e.g., `django-admin startproject {name} .`, `npm create hono@latest .`). Listed explicitly in `bootstrapper-config.yaml` per starter.
+Used by starters whose CLI was designed to scaffold into the current directory (e.g., `django-admin startproject {project_name} {target_dir}`, `npm create hono@latest .`). Listed explicitly in `bootstrapper-config.yaml` per starter.
 
 Sequence:
 
 1. Run the populated-cwd pre-flight: list the files the CLI is about to create or touch (best-effort — for most CLIs this is "files matching the starter's known layout"). If pre-flight cannot enumerate, surface the limitation in conversation but proceed.
-2. Substitute `{name}=.` into `cmd_template`. Substitute `{pm}` if present.
+2. Substitute `{name}=.` and `{target_dir}=.` into `cmd_template`. Substitute `{pm}` and `{project_name}` if present.
 3. Run the resolved command in cwd. Capture stdout, stderr, and exit code.
 4. If exit code != 0, run the CLI failure handling below. Stop here on failure.
 5. There is no merge step — the CLI wrote into cwd directly. The conflict policy still applies in spirit: if the CLI overwrote a file the user had pre-populated (rare; most cwd-aware CLIs refuse on conflict and exit non-zero, which trips the HARD-STOP), surface the overwrite in the post-run summary.
@@ -119,6 +124,7 @@ CLI failure is the only HARD-STOP in the skill. Pre-scaffold staleness, post-sca
 - **`{pm}` omitted from hand-off**: fall back to the card's `toolchain.package_manager`. The chosen card always carries one — registry validation guarantees it.
 - **`cmd_template` with no `{pm}` placeholder**: ignore the package_manager field for this run (e.g., `cargo new {name} --bin --edition 2024` does not need a JS package manager). Stage the resolved value in the verification log anyway for audit-trail completeness.
 - **`{name}` appears more than once in `cmd_template`**: substitute every occurrence. The 10x-astro-starter template (`git clone <url> {name} && cd {name} && {pm} install`) is the canonical example.
+- **`{project_name}` with `native-cwd`**: keep `{project_name}` as the hand-off value and map only `{target_dir}` to `.` (for example `django-admin startproject {project_name} {target_dir}` -> `django-admin startproject tenx_cards .`).
 - **`cmd_template` carries a chained `&&`**: run the whole template as one shell invocation. Bootstrapper does not split on `&&` — it lets the shell handle the chain. Failure of any segment surfaces as a non-zero overall exit code, which the HARD-STOP path handles correctly.
 
 ## Surfacing the result

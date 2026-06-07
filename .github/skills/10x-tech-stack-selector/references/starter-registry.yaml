@@ -512,7 +512,7 @@ starters:
     toolchain:
       package_manager: uv
     pre: "pip install django"
-    cmd_template: "django-admin startproject {name} ."
+    cmd_template: "django-admin startproject {project_name} {target_dir}"
     deployment_defaults: [fly, railway, render, self-host]
     bootstrapper_confidence: verified
     alternatives_to_consider: [fastapi]

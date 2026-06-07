@@ -193,8 +193,16 @@ def auth_me(request):
 
 @csrf_exempt
 def flashcards_collection(request):
+	if not request.user.is_authenticated:
+		return _error_response(
+			code="AUTH_REQUIRED",
+			message="Authentication required.",
+			context={},
+			status=401,
+		)
+
 	if request.method == "GET":
-		flashcards = Flashcard.objects.all().order_by("-created_at")
+		flashcards = Flashcard.objects.filter(owner=request.user).order_by("-created_at")
 		return JsonResponse(
 			{
 				"data": [
@@ -237,7 +245,11 @@ def flashcards_collection(request):
 			status=400,
 		)
 
-	flashcard = Flashcard.objects.create(front=front.strip(), back=back.strip())
+	flashcard = Flashcard.objects.create(
+		owner=request.user,
+		front=front.strip(),
+		back=back.strip(),
+	)
 	return JsonResponse(
 		{
 			"data": {
@@ -252,9 +264,17 @@ def flashcards_collection(request):
 
 
 def flashcard_detail(request, flashcard_id):
+	if not request.user.is_authenticated:
+		return _error_response(
+			code="AUTH_REQUIRED",
+			message="Authentication required.",
+			context={},
+			status=401,
+		)
+
 	if request.method == "DELETE":
 		try:
-			flashcard = Flashcard.objects.get(id=flashcard_id)
+			flashcard = Flashcard.objects.get(id=flashcard_id, owner=request.user)
 		except Flashcard.DoesNotExist:
 			return _error_response(
 				code="NOT_FOUND",
@@ -275,7 +295,7 @@ def flashcard_detail(request, flashcard_id):
 		)
 
 	try:
-		flashcard = Flashcard.objects.get(id=flashcard_id)
+		flashcard = Flashcard.objects.get(id=flashcard_id, owner=request.user)
 	except Flashcard.DoesNotExist:
 		return _error_response(
 			code="NOT_FOUND",
