@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 from urllib.parse import unquote, urlparse
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,13 +24,51 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-kp*06-v0=zb3+!*kmiw@u2y0^o8@4do!o$b6)&)exonuss9t6t'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-dev-only-change-me')
+
+
+def _get_bool_env(name, default=False):
+    raw_value = os.getenv(name)
+    if raw_value is None:
+        return default
+    return raw_value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _get_int_env(name, default):
+    raw_value = os.getenv(name)
+    if raw_value is None or not raw_value.strip():
+        return default
+    return int(raw_value.strip())
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _get_bool_env('DEBUG', True)
 
-ALLOWED_HOSTS = ['agentaibrave-production.up.railway.app']
-CSRF_TRUSTED_ORIGINS = ['https://agentaibrave-production.up.railway.app']
+
+def _get_csv_env(name, default=''):
+    raw_value = os.getenv(name, default)
+    return [item.strip() for item in raw_value.split(',') if item.strip()]
+
+
+def _validate_production_settings():
+    if DEBUG:
+        return
+
+    if (
+        not SECRET_KEY
+        or SECRET_KEY == 'django-insecure-dev-only-change-me'
+        or SECRET_KEY.startswith('django-insecure-')
+        or len(set(SECRET_KEY)) < 5
+        or len(SECRET_KEY) < 50
+    ):
+        raise ImproperlyConfigured(
+            'SECRET_KEY must be a long random value when DEBUG=False.'
+        )
+
+ALLOWED_HOSTS = _get_csv_env('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+CSRF_TRUSTED_ORIGINS = _get_csv_env('CSRF_TRUSTED_ORIGINS', '')
+
+_validate_production_settings()
 
 
 # Application definition
@@ -148,3 +188,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = _get_bool_env('SECURE_SSL_REDIRECT', True)
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = _get_int_env('SECURE_HSTS_SECONDS', 3600)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = _get_bool_env(
+        'SECURE_HSTS_INCLUDE_SUBDOMAINS',
+        False,
+    )
