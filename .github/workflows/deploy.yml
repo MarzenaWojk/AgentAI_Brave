@@ -1,0 +1,56 @@
+# Required GitHub Secrets:
+#   RAILWAY_TOKEN      - Railway Personal Token (Railway Dashboard → Account → API Tokens)
+#   RAILWAY_PUBLIC_URL - Public URL of the Railway service, e.g. https://tenx-cards.up.railway.app
+
+name: Test and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Django tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read Python version
+        id: python-version
+        run: echo "version=$(cat runtime.txt | sed 's/python-//')" >> $GITHUB_OUTPUT
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.python-version.outputs.version }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          SECRET_KEY: test-only-secret-key-not-used-in-production
+          DATABASE_URL: ""
+          DEBUG: "True"
+        run: python manage.py test cards
+
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway deploy --detach
+
+      - name: Smoke test
+        run: |
+          sleep 30
+          curl --fail --retry 3 --retry-delay 10 ${{ secrets.RAILWAY_PUBLIC_URL }}/health/
